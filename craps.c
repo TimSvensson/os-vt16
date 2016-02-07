@@ -35,6 +35,17 @@
 #define P_WRITE(fd, child) fd[child][P_WRITE_PIPE][WRITE]
 #define P_READ(fd, child)  fd[child][P_READ_PIPE][READ]
 
+typedef struct _pipeArray pipeArray;
+typedef struct _pipes pipes;
+
+struct _pipes {
+	int rw[2];
+}
+
+struct _pipeArray {
+	struct *pipes[NUM_PLAYERS];
+}
+
 int main(int argc, char *argv[])
 {
 	int i, seed;
@@ -70,9 +81,8 @@ int main(int argc, char *argv[])
 	//         - pass arguments using args and sprintf
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
-		int fildes[2];
-		pipe(fildes);
-		pid_t pid = fork();
+
+
 	}
 
 
