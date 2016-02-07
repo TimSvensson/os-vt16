@@ -29,21 +29,22 @@
 #define READ  0
 #define WRITE 1
 
-#define P_READ_PIPE  0
-#define P_WRITE_PIPE 1
+#define NEW_STDIN(A)  dup2(stdin, pa.p[A].write[READ])
+#define NEW_STDOUT(A) dup2(stdout, pa.p[A].read[WRITE])
 
-#define P_WRITE(fd, child) fd[child][P_WRITE_PIPE][WRITE]
-#define P_READ(fd, child)  fd[child][P_READ_PIPE][READ]
+#define P_WRITE(A) pa.p[A].write[WRITE]
+#define P_READ(A)  pa.p[A].read[READ]
 
 typedef struct _pipeArray pipeArray;
 typedef struct _pipes pipes;
 
 struct _pipes {
-	int rw[2];
+	int read[2];
+	int write[2];
 };
 
 struct _pipeArray {
-	pipes *p[NUM_PLAYERS];
+	pipes p[NUM_PLAYERS];
 };
 
 int main(int argc, char *argv[])
@@ -64,12 +65,13 @@ int main(int argc, char *argv[])
 	//         - Of which data type should they be?
 	//         - How many pipes are needed?
 	//         - Try to choose self-explanatory variable names, e.g. seedPipe, scorePipe
-	int fd[NUM_PLAYERS][2][2];	
+	pipeArray pa;
+	int id_pid[NUM_PLAYERS] = {0};
 
 	// TODO 3: initialize the communication with the players, i.e. create the pipes
 	for (i = 0; i < NUM_PLAYERS; i++) {
-		pipe(fd[i][P_READ_PIPE]);
-		pipe(fd[i][P_WRITE_PIPE]);
+		pipe(pa.p[i].read);
+		pipe(pa.p[i].write);
 	}
 
 
@@ -79,6 +81,7 @@ int main(int argc, char *argv[])
 	//         - re-direct standard-inputs/-outputs of the players
 	//         - use execv to start the players
 	//         - pass arguments using args and sprintf
+	printf("master: Forking...\n");
 	for (i = 0; i < NUM_PLAYERS; i++) {
 		pid_t pid;
 		switch(pid = fork()) {
@@ -89,57 +92,86 @@ int main(int argc, char *argv[])
 			break;
 		case 0:
 			// child
+			// printf("\tC<%d> Closing pipes\n", getpid());
 			for (int j = 0; j < NUM_PLAYERS; j++) {
 				if (i == j) {
-					// close the ends that the parent will use
-					close(fd[j][P_READ_PIPE][READ]);
-					close(fd[j][P_WRITE_PIPE][WRITE]);
-				} else {
-					close(fd[j][P_READ_PIPE][READ]);
-					close(fd[j][P_READ_PIPE][WRITE]);
-
-					close(fd[j][P_WRITE_PIPE][READ]);
-					close(fd[j][P_WRITE_PIPE][WRITE]);
+					// printf("\tC<%d> Overwriting stdin and stdout.\n", getpid());
+					if(dup2(pa.p[j].write[READ], 0) < 0) {
+						perror("stdin-DUP2");
+						exit(EXIT_FAILURE);
+					}
+					if(dup2(pa.p[j].read[WRITE], 1) < 0) {
+						perror("stdout-DUP2");
+						exit(EXIT_FAILURE);
+					}					
 				}
+				close(pa.p[j].read[READ]);
+				close(pa.p[j].read[WRITE]);
+
+				close(pa.p[j].write[READ]);
+				close(pa.p[j].write[WRITE]);
 			}
+			// printf("\tC<%d> Done, goodbye.\n", getpid());
+			shooter(i, 666, 666);
 			break;
 		default:
-			//parent
-			printf("parent\n");
+			// parent
+			// printf("P<%d> <%d> is my child.\n", getpid(), pid);
+			
+			id_pid[i] = pid;
+			printf("master: closing unused pipes.\n");
+
+			close(pa.p[i].read[WRITE]);
+			close(pa.p[i].write[READ]);
 		}
 	}
 
-
+	// sleep(1);
+	// printf("\nP<%d> All children forked.\n\n", getpid());
+	
+	printf("master: Getting seed\n");
 	seed = time(NULL);
-
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
 		seed++;
-		// TODO 5: send the seed to the players (write using pipes)
+
+		// char str[50] = {'\0'};
+		// read(pa.p[i].read[READ], str, 50);
+		// printf("P<%d> A child said:\n%s", getpid(), str);
+
+		// TODO 5: send the seed to the players (write using pipes)		
+		write(pa.p[i].write[WRITE], &seed, sizeof(int));
 	}
 
 
 	// TODO 6: read the dice results from the players via pipes, find the winner
 
-	for (i = 0; i < NUM_PLAYERS; i++) {
+	int result[NUM_PLAYERS] = {0};
 
+	for (i = 0; i < NUM_PLAYERS; i++) {
+		read(pa.p[i].read[READ], &result[i], sizeof(int));
 	}
 
-
-	//printf("master: player %d WINS\n", winner);
+	int winner = 0;
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+		if (result[winner] < result[i]) {
+			winner = i;
+		}
+	}
+	printf("master: player %d WINS\n", winner);
 
 
 	// TODO 7: signal the winner
 	//         - which command do you use to send signals?
 	//         - you will need the pid of the winner
-
 	
+	kill(id_pid[winner], SIGUSR1);
 
 	// TODO 8: signal all players the end of game
 	//         - you will need the pid of all the players
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
-
+		kill(id_pid[i], SIGUSR2);
 	}
 
 
@@ -151,7 +183,7 @@ int main(int argc, char *argv[])
 	//         before game master exits 
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
-
+		wait(NULL);
 	}
 
 	return 0;

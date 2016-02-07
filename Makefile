@@ -8,7 +8,7 @@
 #
 
 # change to y to enable debugging support
-DEBUG=n
+DEBUG=y
 
 CFLAGS=-Wall -Wextra
 LDFLAGS=
