@@ -51,10 +51,9 @@ int main(int argc, char **argv)
 {
 	printf("\n");
 
-	pid_t pid = fork();
-
 	int fildes[2];
 	pipe(fildes);
+	pid_t pid = fork();
 
 	if (pid == -1) {
 		// error
