@@ -8,8 +8,11 @@
 
 void child(int fildes[2])
 {
-	printf("    C<%d> I am the child of <%d>.\n", getpid(), getppid());
-	
+	if (close(fildes[WRITE]) < 0) {
+		printf("ERROR: unable to close WRITE-pipe!");
+	}
+
+	printf("    C<%d> I am the child of <%d>.\n", getpid(), getppid());	
 	printf("    C<%d> I will now read my end of the pipe!\n", getpid());
 
 	int buf = 0;
