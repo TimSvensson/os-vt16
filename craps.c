@@ -40,11 +40,11 @@ typedef struct _pipes pipes;
 
 struct _pipes {
 	int rw[2];
-}
+};
 
 struct _pipeArray {
-	struct *pipes[NUM_PLAYERS];
-}
+	pipes *p[NUM_PLAYERS];
+};
 
 int main(int argc, char *argv[])
 {
@@ -80,7 +80,8 @@ int main(int argc, char *argv[])
 	//         - use execv to start the players
 	//         - pass arguments using args and sprintf
 	for (i = 0; i < NUM_PLAYERS; i++) {
-		switch(pid_t pid = fork()) {
+		pid_t pid;
+		switch(pid = fork()) {
 		case -1:
 			// error
 			perror("FORK");
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
 			// child
 			for (int j = 0; j < NUM_PLAYERS; j++) {
 				if (i == j) {
+					// close the ends that the parent will use
 					close(fd[j][P_READ_PIPE][READ]);
 					close(fd[j][P_WRITE_PIPE][WRITE]);
 				} else {
@@ -103,7 +105,7 @@ int main(int argc, char *argv[])
 			break;
 		default:
 			//parent
-
+			printf("parent\n");
 		}
 	}
 
