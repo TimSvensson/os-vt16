@@ -9,22 +9,29 @@
 void child(int fildes[2])
 {
 	if (close(fildes[WRITE]) < 0) {
-		printf("ERROR: unable to close WRITE-pipe!");
+		perror("Unable to close WRITE-pipe!");
+		exit(-1);
 	}
 
 	printf("    C<%d> I am the child of <%d>.\n", getpid(), getppid());	
 	printf("    C<%d> I will now read my end of the pipe!\n", getpid());
 
 	int buf = 0;
-	int ret = -1;
+	int r_ret = -1;
 	read(fildes[READ], &buf, sizeof(buf));
 	
+	printf("    C<%d> r_ret = %d\n", getpid(), r_ret);
 	printf("    C<%d> My parent told me: %d.\n", getpid(), buf);
 	printf("    C<%d> Goodbye!\n", getpid());
 }
 
 void parent(pid_t child_pid, int fildes[2])
 {
+	if (close(fildes[READ]) < 0) {
+		perror("Unable to close READ-pipe!");
+		exit(-1);
+	}
+
 	printf("P<%d> I am the parent!\n", getpid());
 
 	printf("P<%d> I will now write '7' to the pipe.\n", getpid());
@@ -56,6 +63,7 @@ int main(int argc, char **argv)
 		// child
 
 		child(fildes);
+		exit(0);
 	} else {
 		// parent
 
