@@ -51,7 +51,6 @@ int main(int argc, char *argv[])
 {
 	int i, seed;
 
-
 	// TODO 1: Un-comment the following variables to use them in the 
 	//         exec system call. Using the function sprintf and the arg1 
 	//         variable you can pass the id parameter to the children 
@@ -60,11 +59,11 @@ int main(int argc, char *argv[])
 	char arg1[10]; 
 	char *args[] = {arg0, arg1, NULL};
 	
-
 	// TODO 2: Declare pipe variables
 	//         - Of which data type should they be?
 	//         - How many pipes are needed?
 	//         - Try to choose self-explanatory variable names, e.g. seedPipe, scorePipe
+
 	pipeArray pa;
 	int id_pid[NUM_PLAYERS] = {0};
 
@@ -74,13 +73,13 @@ int main(int argc, char *argv[])
 		pipe(pa.p[i].write);
 	}
 
-
 	// TODO 4: spawn/fork the processes that simulate the players
 	//         - check if players were successfully spawned
 	//         - is it needed to store the pid of the players? Which data structure to use for this?
 	//         - re-direct standard-inputs/-outputs of the players
 	//         - use execv to start the players
 	//         - pass arguments using args and sprintf
+
 	printf("master: Forking...\n");
 	for (i = 0; i < NUM_PLAYERS; i++) {
 		pid_t pid;
@@ -111,15 +110,15 @@ int main(int argc, char *argv[])
 				close(pa.p[j].write[READ]);
 				close(pa.p[j].write[WRITE]);
 			}
-			// printf("\tC<%d> Done, goodbye.\n", getpid());
-			shooter(i, 666, 666);
+			sprintf(arg1, "%d", i);
+
+			execv(arg0, args);
 			break;
 		default:
 			// parent
 			// printf("P<%d> <%d> is my child.\n", getpid(), pid);
 			
 			id_pid[i] = pid;
-			printf("master: closing unused pipes.\n");
 
 			close(pa.p[i].read[WRITE]);
 			close(pa.p[i].write[READ]);
@@ -129,7 +128,7 @@ int main(int argc, char *argv[])
 	// sleep(1);
 	// printf("\nP<%d> All children forked.\n\n", getpid());
 	
-	printf("master: Getting seed\n");
+	printf("master: Seeding...\n");
 	seed = time(NULL);
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
@@ -146,8 +145,9 @@ int main(int argc, char *argv[])
 
 	// TODO 6: read the dice results from the players via pipes, find the winner
 
-	int result[NUM_PLAYERS] = {0};
 
+	printf("master: Getting results...\n");
+	int result[NUM_PLAYERS] = {0};
 	for (i = 0; i < NUM_PLAYERS; i++) {
 		read(pa.p[i].read[READ], &result[i], sizeof(int));
 	}
@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 			winner = i;
 		}
 	}
-	printf("master: player %d WINS\n", winner);
 
+	printf("master: player %d WINS\n", winner);
 
 	// TODO 7: signal the winner
 	//         - which command do you use to send signals?
@@ -170,13 +170,11 @@ int main(int argc, char *argv[])
 	// TODO 8: signal all players the end of game
 	//         - you will need the pid of all the players
 
+
+	printf("master: the game ends\n");
 	for (i = 0; i < NUM_PLAYERS; i++) {
 		kill(id_pid[i], SIGUSR2);
 	}
-
-
-	printf("master: the game ends\n");
-
 
 	// TODO 9: cleanup resources and exit with success
 	//         wait for all the players/children to exit
