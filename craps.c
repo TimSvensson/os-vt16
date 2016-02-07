@@ -29,8 +29,8 @@
 #define READ  0
 #define WRITE 1
 
-#define P_WRITE_PIPE 1
 #define P_READ_PIPE  0
+#define P_WRITE_PIPE 1
 
 #define P_WRITE(fd, child) fd[child][P_WRITE_PIPE][WRITE]
 #define P_READ(fd, child)  fd[child][P_READ_PIPE][READ]
@@ -44,21 +44,21 @@ int main(int argc, char *argv[])
 	//         exec system call. Using the function sprintf and the arg1 
 	//         variable you can pass the id parameter to the children 
 
-	// char arg0[] = "./shooter"; 
-	// char arg1[10]; 
-	// char *args[] = {arg0, arg1, NULL};
+	char arg0[] = "./shooter";
+	char arg1[10]; 
+	char *args[] = {arg0, arg1, NULL};
 	
 
 	// TODO 2: Declare pipe variables
 	//         - Of which data type should they be?
 	//         - How many pipes are needed?
 	//         - Try to choose self-explanatory variable names, e.g. seedPipe, scorePipe
-	
+	int fd[NUM_PLAYERS][2][2];	
 
 	// TODO 3: initialize the communication with the players, i.e. create the pipes
-
 	for (i = 0; i < NUM_PLAYERS; i++) {
-
+		pipe(fd[i][P_READ_PIPE]);
+		pipe(fd[i][P_WRITE_PIPE]);
 	}
 
 
@@ -68,11 +68,32 @@ int main(int argc, char *argv[])
 	//         - re-direct standard-inputs/-outputs of the players
 	//         - use execv to start the players
 	//         - pass arguments using args and sprintf
-
 	for (i = 0; i < NUM_PLAYERS; i++) {
-		int fildes[2];
-		pipe(fildes);
-		pid_t pid = fork();
+		switch(pid_t pid = fork()) {
+		case -1:
+			// error
+			perror("FORK");
+			exit(EXIT_FAILURE);
+			break;
+		case 0:
+			// child
+			for (int j = 0; j < NUM_PLAYERS; j++) {
+				if (i == j) {
+					close(fd[j][P_READ_PIPE][READ]);
+					close(fd[j][P_WRITE_PIPE][WRITE]);
+				} else {
+					close(fd[j][P_READ_PIPE][READ]);
+					close(fd[j][P_READ_PIPE][WRITE]);
+
+					close(fd[j][P_WRITE_PIPE][READ]);
+					close(fd[j][P_WRITE_PIPE][WRITE]);
+				}
+			}
+			break;
+		default:
+			//parent
+
+		}
 	}
 
 
