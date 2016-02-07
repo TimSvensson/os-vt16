@@ -35,6 +35,17 @@
 #define P_WRITE(fd, child) fd[child][P_WRITE_PIPE][WRITE]
 #define P_READ(fd, child)  fd[child][P_READ_PIPE][READ]
 
+typedef struct _pipeArray pipeArray;
+typedef struct _pipes pipes;
+
+struct _pipes {
+	int rw[2];
+}
+
+struct _pipeArray {
+	struct *pipes[NUM_PLAYERS];
+}
+
 int main(int argc, char *argv[])
 {
 	int i, seed;
