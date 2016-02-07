@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 {
 	int i, seed;
 
+
 	// TODO 1: Un-comment the following variables to use them in the 
 	//         exec system call. Using the function sprintf and the arg1 
 	//         variable you can pass the id parameter to the children 
@@ -60,6 +61,9 @@ int main(int argc, char *argv[])
 	//         - pass arguments using args and sprintf
 
 	for (i = 0; i < NUM_PLAYERS; i++) {
+		int fildes[2];
+		pipe(fildes);
+		pid_t pid = fork();
 	}
 
 
@@ -79,7 +83,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	printf("master: player %d WINS\n", winner);
+	//printf("master: player %d WINS\n", winner);
 
 
 	// TODO 7: signal the winner

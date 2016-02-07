@@ -67,7 +67,6 @@ int main(int argc, char **argv)
 	pipe(fildes);
 	pid_t pid = fork();
 
-	pid_t pid = fork();
 
 	if (pid == -1) {
 		// error
