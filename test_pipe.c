@@ -2,9 +2,17 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define READ 0
 #define WRITE 1
+
+void sig_handler(int sig)
+{
+	signal(SIGINT, sig_handler);
+	printf("SIGPIPE\n");
+	fflush(stdout);
+}
 
 void child(int fildes[2])
 {
@@ -17,10 +25,11 @@ void child(int fildes[2])
 	printf("    C<%d> I will now read my end of the pipe!\n", getpid());
 
 	int buf = 0;
-	int r_ret = -1;
-	read(fildes[READ], &buf, sizeof(buf));
+	if (read(fildes[READ], &buf, sizeof(buf)) < 0) {
+		perror("READ FAILED");
+		exit(-1);
+	}
 	
-	printf("    C<%d> r_ret = %d\n", getpid(), r_ret);
 	printf("    C<%d> My parent told me: %d.\n", getpid(), buf);
 	printf("    C<%d> Goodbye!\n", getpid());
 }
@@ -33,12 +42,13 @@ void parent(pid_t child_pid, int fildes[2])
 	}
 
 	printf("P<%d> I am the parent!\n", getpid());
-
 	printf("P<%d> I will now write '7' to the pipe.\n", getpid());
-	int i = 7;
-	ssize_t w_ret = -1;
-	w_ret = write(fildes[WRITE], &i, sizeof(int));
-	printf("P<%d> w_ret = %d.\n", getpid(), (int) w_ret);
+
+	int buf = 7;
+	if (write(fildes[WRITE], &buf, sizeof(buf)) < 0) {
+		perror("FAILED TO WRITE!");
+		exit(-1);
+	}
 
 	printf("P<%d> I will now wait for <%d>.\n", getpid(), child_pid);
 	waitpid(child_pid, NULL, 0);
@@ -51,10 +61,12 @@ int main(int argc, char **argv)
 {
 	printf("\n");
 
-	pid_t pid = fork();
+	signal(sig_handler, SIGPIPE);
 
 	int fildes[2];
 	pipe(fildes);
+
+	pid_t pid = fork();
 
 	if (pid == -1) {
 		// error
