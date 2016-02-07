@@ -26,6 +26,15 @@
 
 #include "common.h"
 
+#define READ  0
+#define WRITE 1
+
+#define P_WRITE_PIPE 1
+#define P_READ_PIPE  0
+
+#define P_WRITE(fd, child) fd[child][P_WRITE_PIPE][WRITE]
+#define P_READ(fd, child)  fd[child][P_READ_PIPE][READ]
+
 int main(int argc, char *argv[])
 {
 	int i, seed;
