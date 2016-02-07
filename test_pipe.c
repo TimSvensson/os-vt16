@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 
 	int fildes[2];
 	pipe(fildes);
+	pid_t pid = fork();
 
 	pid_t pid = fork();
 
