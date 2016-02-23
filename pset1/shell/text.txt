@@ -1,0 +1,6 @@
+total 8
+-rw-r--r--   1 timsvensson  staff  441 Feb  7 19:59 Makefile
+drwxr-xr-x   5 timsvensson  staff  170 Feb  7 20:50 bin
+drwxr-xr-x   5 timsvensson  staff  170 Feb  7 20:50 obj
+drwxr-xr-x  12 timsvensson  staff  408 Feb  7 20:49 src
+-rw-r--r--   1 timsvensson  staff    0 Feb  7 20:51 text.txt
