@@ -65,7 +65,7 @@ main()
     pthread_t tidA, tidB;
     sem_init(&m1, 0, 1);
     sem_init(&m2, 0, 1);
-    
+
     srand(time(NULL));
     pthread_setconcurrency(3);
 
