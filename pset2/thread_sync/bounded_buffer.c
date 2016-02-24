@@ -78,7 +78,7 @@ remove_item(int *item)
      pthread_mutex_lock(&lockOut);
      int myOut = buffer.next_out;
      buffer.next_out = (buffer.next_out + 1) % BUFFER_SIZE;
-     pthread_mutex_unlock(lockOut);
+     pthread_mutex_unlock(&lockOut);
      sleep(rand() % BUFFER_SIZE);
 
     *item = buffer.value[myOut];
