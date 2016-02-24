@@ -52,7 +52,7 @@ insert_item(int item)
      pthread_mutex_lock(&lockIn);
      int myIn = buffer.next_in;
      buffer.next_in = (buffer.next_in + 1) % BUFFER_SIZE;
-     pthread_mutex_unlock(lockIn);
+     pthread_mutex_unlock(&lockIn);
      sleep(rand() % BUFFER_SIZE);
 
      buffer.value[myIn] = item;
