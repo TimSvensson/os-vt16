@@ -89,7 +89,7 @@ dec_mutex(void *arg __attribute__((unused)))
  dec_cas(void *arg __attribute__((unused)))
  {
      int i;
-     int comparison = counter;
+     int comparison;
      /* TODO 2: Use the compare and swap primitive to manipulate the shared
       * variable */
       for (i = 0; i < DEC_ITERATIONS; i++) {
