@@ -37,6 +37,15 @@ buffer_t buffer;
 
 pthread_t consumer_tid[CONSUMERS], producer_tid[PRODUCERS];
 
+void
+print_buffer()
+{
+    printf("\t");
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        printf("[%d]", buffer.value[i]);
+    }
+    printf("\n");
+}
 /* *
  * insert_item - thread safe(?) function to insert items to the bounded buffer
  * @param item the value to be inserted
@@ -56,13 +65,13 @@ insert_item(int item, int id)
 
      pthread_mutex_unlock(&lockIn);
 
-     printf("P%d @ %d sleeping...\n", id, myIn);
+     printf("P%d @ %d producing...\n", id, myIn);
      sleep(rand() % BUFFER_SIZE);
 
-     printf("P%d @ %d woke up, produced %d\n", id, myIn, item);
-     buffer.value[myIn] = item;
-     printf("P%d : %d %d %d %d %d\n", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
+     printf("P%d @ %d produced %d\n", id, myIn, item);
 
+     buffer.value[myIn] = item;
+     print_buffer();
      sem_post(&c);
 
     return 0;
@@ -88,15 +97,16 @@ remove_item(int *item, int id)
 
      pthread_mutex_unlock(&lockOut);
 
-     printf("C%d @ %d sleeping...\n", id, myOut);
-
-     sleep(rand() % BUFFER_SIZE);
+     do {
+         printf("C%d @ %d waiting...\n", id, myOut);
+         sleep(rand() % BUFFER_SIZE);
+     } while (buffer.value[myOut] <= 0);
 
      *item = buffer.value[myOut];
-     printf("C%d @ %d woke up, consumed %d\n", id, myOut, *item);
-     buffer.value[myOut] = -1;
 
-     printf("C%d : %d %d %d %d %d\n", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
+     printf("C%d @ %d woke up, consumed %d\n", id, myOut, *item);
+     buffer.value[myOut] = 0;
+     print_buffer();
 
      sem_post(&p);
 
@@ -116,16 +126,17 @@ producer(void *param)
     int item, i;
     long int id = (long int)param;
 
-    printf("producer started\n");
+    printf("p%d started\n", (int)id);
     i = PRODUCER_ITERATIONS;
     while (i--) {
 	sleep(rand() % 3);
 
-	item = rand() % 10 + 1;
-	if (insert_item(item, id))
+	item = rand() % 9 + 1;
+	if (insert_item(item, id)) {
 	    fprintf(stderr, "Error while inserting to buffer\n");
-	else
-	    printf("producer %ld: inserted %d\n", id, item);
+        } else {
+	    //printf("producer %ld: inserted %d\n", id, item);
+        }
     }
 
     pthread_exit(0);
@@ -144,15 +155,16 @@ consumer(void *param)
     int item, i;
     long int id = (long int)param;
 
-    printf("consumer started\n");
+    printf("c%d started\n", (int)id);
     i = CONSUMER_ITERATIONS;
     while (i--) {
 	sleep(rand() % 3);
 
-	if (remove_item(&item, id))
+	if (remove_item(&item, id)) {
 	    fprintf(stderr, "Error while removing from buffer\n");
-	else
-	    printf("consumer %ld: removed %d\n", id, item);
+	} else {
+	    //printf("consumer %ld: removed %d\n", id, item);
+        }
     }
 
     pthread_exit(0);
