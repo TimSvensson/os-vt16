@@ -23,7 +23,8 @@
  * predictable way. Both should perform iteration 1 before iteration 2
  * and then 2 before 3 etc. */
 
-sem_t mutex;
+sem_t m1;
+sem_t m2;
 
 void *
 threadA(void *param __attribute__((unused)))
@@ -31,9 +32,9 @@ threadA(void *param __attribute__((unused)))
     int i;
 
     for (i = 0; i < LOOPS; i++) {
-        sem_wait(&mutex);
+        sem_wait(&m1);
 	printf("threadA --> %d iteration\n", i);
-        sem_post(&mutex);
+        sem_post(&m2);
 
         sleep(rand() % MAX_SLEEP_TIME);
     }
@@ -48,9 +49,9 @@ threadB(void *param  __attribute__((unused)))
     int i;
 
     for (i = 0; i < LOOPS; i++) {
-        sem_wait(&mutex);
+        sem_wait(&m2);
 	printf("threadB --> %d iteration\n", i);
-        sem_post(&mutex);
+        sem_post(&m1);
 
         sleep(rand() % MAX_SLEEP_TIME);
     }
@@ -62,8 +63,9 @@ int
 main()
 {
     pthread_t tidA, tidB;
-    sem_init(&mutex, 0, 1);
-
+    sem_init(&m1, 0, 1);
+    sem_init(&m2, 0, 1);
+    
     srand(time(NULL));
     pthread_setconcurrency(3);
 
