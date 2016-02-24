@@ -55,7 +55,7 @@ insert_item(int item)
      pthread_mutex_unlock(lockIn);
      sleep(rand() % BUFFER_SIZE);
 
-     buffer.value[buffer.next_in] = item;
+     buffer.value[myIn] = item;
      sem_post(&c);
 
 
