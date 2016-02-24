@@ -27,8 +27,8 @@ typedef struct {
     int next_in, next_out;
 } buffer_t;
 
-semt_t p;
-semt_t c;
+sem_t p;
+sem_t c;
 
 pthread_mutex_t lockIn = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lockOut = PTHREAD_MUTEX_INITIALIZER;
