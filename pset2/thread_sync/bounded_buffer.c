@@ -27,6 +27,11 @@ typedef struct {
     int next_in, next_out;
 } buffer_t;
 
+semt_t p;
+semt_t c;
+
+pthread_mutex_t lockIn = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lockOut = PTHREAD_MUTEX_INITIALIZER;
 
 buffer_t buffer;
 
@@ -43,10 +48,15 @@ insert_item(int item)
     /* TODO: Check and wait if the buffer is full. Ensure exclusive
      * access to the buffer and use the existing code to remove an item.
      */
+     sem_wait(&p);
+     pthread_mutex_lock(&lockIn);
+     int myIn = buffer.next_in;
+     buffer.next_in = (buffer.next_in + 1) % BUFFER_SIZE;
+     pthread_mutex_unlock(lockIn);
+     sleep(rand() % BUFFER_SIZE);
 
-
-    buffer.value[buffer.next_in] = item;
-    buffer.next_in = (buffer.next_in + 1) % BUFFER_SIZE;
+     buffer.value[buffer.next_in] = item;
+     sem_post(&c);
 
 
     return 0;
@@ -64,10 +74,17 @@ remove_item(int *item)
      * access to the buffer and use the existing code to remove an item.
      */
 
+     sem_wait(&c);
+     pthread_mutex_lock(&lockOut);
+     int myOut = buffer.next_out;
+     buffer.next_out = (buffer.next_out + 1) % BUFFER_SIZE;
+     pthread_mutex_unlock(lockOut);
+     sleep(rand() % BUFFER_SIZE);
 
-    *item = buffer.value[buffer.next_out];
-    buffer.value[buffer.next_out] = -1;
-    buffer.next_out = (buffer.next_out + 1) % BUFFER_SIZE;
+    *item = buffer.value[myOut];
+    buffer.value[myOut] = -1;
+    sem_post(&p);
+
 
     return 0;
 }
@@ -131,6 +148,9 @@ int
 main()
 {
     long int i;
+
+    sem_init(&p, 0, 5);
+    sem_init(&c, 0, 0);
 
     srand(time(NULL));
 
