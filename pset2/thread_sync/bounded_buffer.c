@@ -56,12 +56,12 @@ insert_item(int item, int id)
 
      pthread_mutex_unlock(&lockIn);
 
-     printf("P%d @ %d sleeping...", id, myOut);
+     printf("P%d @ %d sleeping...", id, myIn);
      sleep(rand() % BUFFER_SIZE);
 
-     printf("P%d @ %d woke up, produced %d", id, myOut, *item);
+     printf("P%d @ %d woke up, produced %d", id, myIn, item);
      buffer.value[myIn] = item;
-     printf("P%d : %d %d %d %d %d", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4])
+     printf("P%d : %d %d %d %d %d", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
 
      sem_post(&c);
 
@@ -96,7 +96,7 @@ remove_item(int *item, int id)
      printf("C%d @ %d woke up, consumed %d", id, myOut, *item);
      buffer.value[myOut] = -1;
 
-     printf("C%d : %d %d %d %d %d", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4])
+     printf("C%d : %d %d %d %d %d", id, buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
 
      sem_post(&p);
 
