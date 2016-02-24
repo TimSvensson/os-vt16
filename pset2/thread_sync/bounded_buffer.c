@@ -112,6 +112,7 @@ producer(void *param)
 	    fprintf(stderr, "Error while inserting to buffer\n");
 	else
 	    printf("producer %ld: inserted %d\n", id, item);
+      printf("%d %d %d %d %d\n", buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
     }
 
     pthread_exit(0);
@@ -139,6 +140,7 @@ consumer(void *param)
 	    fprintf(stderr, "Error while removing from buffer\n");
 	else
 	    printf("consumer %ld: removed %d\n", id, item);
+      printf("%d %d %d %d %d\n", buffer.value[0], buffer.value[1], buffer.value[2], buffer.value[3], buffer.value[4]);
     }
 
     pthread_exit(0);
