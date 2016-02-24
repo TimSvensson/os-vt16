@@ -67,72 +67,69 @@ dec_mutex(void *arg __attribute__((unused)))
 
 /* Access to the shared counter should be implemented using the compare & swap
  * instructions */
-void *
-inc_cas(void *arg __attribute__((unused)))
-{
-    int i;
+ void *
+ inc_cas(void *arg __attribute__((unused)))
+ {
+     int i;
 
-    /* TODO 2: Use the compare and swap primitive to manipulate the shared
-     * variable */
-    for (i = 0; i < INC_ITERATIONS; i++) {
+     /* TODO 2: Use the compare and swap primitive to manipulate the shared
+      * variable */
+      int old;
 
-        bool done = false;
-        while (done == false) {
-            int old = counter;
-            done = __sync_bool_compare_and_swap(&counter, old, counter += INCREMENT);
-        }
-    }
+     for (i = 0; i < INC_ITERATIONS; i++) {
+       do {
+         comparison = counter;
+       } while(!__sync_bool_compare_and_swap (&counter, comparison, comparison + INCREMENT));
+     }
 
-    return NULL;
-}
+     return NULL;
+ }
 
-void *
-dec_cas(void *arg __attribute__((unused)))
-{
-    int i;
+ void *
+ dec_cas(void *arg __attribute__((unused)))
+ {
+     int i;
+     int oldTwo = counter;
+     /* TODO 2: Use the compare and swap primitive to manipulate the shared
+      * variable */
+      for (i = 0; i < DEC_ITERATIONS; i++) {
+        do {
+          comparison = counter;
+        } while(!__sync_bool_compare_and_swap (&counter, comparison, comparison - DECREMENT));
+      }
 
-    /* TODO 2: Use the compare and swap primitive to manipulate the shared
-     * variable */
-    for (i = 0; i < DEC_ITERATIONS; i++) {
+     return NULL;
+ }
 
-        bool done = false;
-        while (done == false) {
-            int old = counter;
-            done = __sync_bool_compare_and_swap(&counter, old, counter += DECREMENT);
-        }
-    }
+ /* Access to the shared counter should be implemented using the atomic
+  * instructions */
+ void *
+ inc_atomic(void *arg __attribute__((unused)))
+ {
+     int i;
 
-    return NULL;
-}
+     /* TODO 3: Use atomic primitives to manipulate the shared variable */
+     for (i = 0; i < INC_ITERATIONS; i++) {
+        __sync_fetch_and_add (&counter, INCREMENT);
+       //  counter += DECREMENT; // You need to replace this
+     }
 
+     return NULL;
+ }
 
-/* Access to the shared counter should be implemented using the atomic
- * instructions */
-void *
-inc_atomic(void *arg __attribute__((unused)))
-{
-    int i;
+ void *
+ dec_atomic(void *arg __attribute__((unused)))
+ {
+     int i;
 
-    /* TODO 3: Use atomic primitives to manipulate the shared variable */
-    for (i = 0; i < INC_ITERATIONS; i++) {
-        counter += DECREMENT; // You need to replace this
-    }
+     /* TODO 3: Use atomic primitives to manipulate the shared variable */
+     for (i = 0; i < DEC_ITERATIONS; i++) {
+       __sync_fetch_and_sub (&counter, DECREMENT);
+         //counter += DECREMENT; // You need to replace this
+     }
 
-    return NULL;
-}
-
-void *
-dec_atomic(void *arg __attribute__((unused)))
-{
-    int i;
-
-    /* TODO 3: Use atomic primitives to manipulate the shared variable */
-    for (i = 0; i < DEC_ITERATIONS; i++) {
-        counter += DECREMENT; // You need to replace this
-    }
-
-    return NULL;
-}
+     return NULL;
+ }
 
 
 /***********************************************************/
