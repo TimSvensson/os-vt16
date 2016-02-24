@@ -107,7 +107,7 @@ producer(void *param)
     while (i--) {
 	sleep(rand() % 3);
 
-	item = rand() % 10000;
+	item = rand() % 10 + 1;
 	if (insert_item(item))
 	    fprintf(stderr, "Error while inserting to buffer\n");
 	else
